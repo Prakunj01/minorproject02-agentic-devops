@@ -3,8 +3,7 @@ import requests
 import os
 
 # HuggingFace API
-API_URL = "https://router.huggingface.co/hf-inference/models/mistralai/Mistral-7B-Instruct-v0.2"
-
+API_URL = "https://router.huggingface.co/hf-inference/models/mistralai/Mistral-7B-Instruct-v0.3"
 HF_TOKEN = os.getenv("HF_TOKEN")
 
 headers = {
