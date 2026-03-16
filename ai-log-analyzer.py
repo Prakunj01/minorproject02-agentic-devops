@@ -1,16 +1,13 @@
 import subprocess
-import requests
-import os
-
-# HuggingFace API
-API_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2"
-HF_TOKEN = os.getenv("HF_TOKEN")
-
-headers = {
-    "Authorization": f"Bearer {HF_TOKEN}"
-}
+import boto3
 
 CONTAINER_NAME = "phase-1"
+
+# Bedrock client
+client = boto3.client(
+    "bedrock-runtime",
+    region_name="us-east-1"
+)
 
 try:
     # Get docker logs
@@ -38,35 +35,21 @@ Logs:
 {logs}
 """
 
-    response = requests.post(
-        API_URL,
-        headers=headers,
-        json={
-            "inputs": prompt,
-            "parameters": {
-                "max_new_tokens": 300
+    # Bedrock request
+    response = client.converse(
+        modelId="us.meta.llama3-1-8b-instruct-v1:0",
+        messages=[
+            {
+                "role": "user",
+                "content": [{"text": prompt}]
             }
-        }
+        ],
     )
 
+    result = response["output"]["message"]["content"][0]["text"]
+
     print("\n===== AI ANALYSIS =====\n")
-
-    if response.status_code != 200:
-        print("API ERROR:", response.status_code)
-        print(response.text)
-        exit()
-
-    result = response.json()
-
-    if isinstance(result, list):
-        text = result[0]["generated_text"]
-    else:
-        text = str(result)
-
-    # Clean output
-    text = text.replace(prompt, "")
-
-    print(text.strip())
+    print(result)
 
 except subprocess.CalledProcessError as e:
     print("Error fetching docker logs:", e.output.decode())
