@@ -2,8 +2,7 @@ import subprocess
 import requests
 import os
 
-
-# HuggingFace API settings
+# HuggingFace API
 API_URL = "https://router.huggingface.co/hf-inference/models/mistralai/Mistral-7B-Instruct-v0.2"
 
 HF_TOKEN = os.getenv("HF_TOKEN")
@@ -12,11 +11,10 @@ headers = {
     "Authorization": f"Bearer {HF_TOKEN}"
 }
 
-# Container name (change if needed)
 CONTAINER_NAME = "affectionate_hermann"
 
 try:
-    # Get last 50 logs from Docker container
+    # Get docker logs
     logs = subprocess.check_output(
         ["docker", "logs", "--tail", "50", CONTAINER_NAME],
         stderr=subprocess.STDOUT
@@ -26,8 +24,16 @@ try:
     print(logs)
 
     prompt = f"""
-Analyze these server logs and explain any errors.
-Also suggest possible fixes.
+You are a DevOps security assistant.
+
+Analyze the following nginx/docker logs and produce a HUMAN READABLE report.
+
+Return output in this format:
+
+1. Summary of traffic
+2. Suspicious activities detected
+3. Possible attacks
+4. Suggested fixes for the server
 
 Logs:
 {logs}
@@ -36,17 +42,32 @@ Logs:
     response = requests.post(
         API_URL,
         headers=headers,
-        json={"inputs": prompt}
+        json={
+            "inputs": prompt,
+            "parameters": {
+                "max_new_tokens": 300
+            }
+        }
     )
-
-    result = response.json()
 
     print("\n===== AI ANALYSIS =====\n")
 
+    if response.status_code != 200:
+        print("API ERROR:", response.status_code)
+        print(response.text)
+        exit()
+
+    result = response.json()
+
     if isinstance(result, list):
-        print(result[0]["generated_text"])
+        text = result[0]["generated_text"]
     else:
-        print(result)
+        text = str(result)
+
+    # Clean output
+    text = text.replace(prompt, "")
+
+    print(text.strip())
 
 except subprocess.CalledProcessError as e:
     print("Error fetching docker logs:", e.output.decode())
