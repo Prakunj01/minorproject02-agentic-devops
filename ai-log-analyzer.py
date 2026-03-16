@@ -4,7 +4,7 @@ import os
 
 
 # HuggingFace API settings
-API_URL = "https://api-inference.huggingface.co/models/google/flan-t5-large"
+API_URL = "https://router.huggingface.co/hf-inference/models/mistralai/Mistral-7B-Instruct-v0.2"
 
 HF_TOKEN = os.getenv("HF_TOKEN")
 
