@@ -10,12 +10,12 @@ headers = {
     "Authorization": f"Bearer {HF_TOKEN}"
 }
 
-CONTAINER_NAME = "affectionate_hermann"
+CONTAINER_NAME = "phase-1"
 
 try:
     # Get docker logs
     logs = subprocess.check_output(
-        ["docker", "logs", "--tail", "50", CONTAINER_NAME],
+        ["docker", "logs", "--since", "5m", CONTAINER_NAME],
         stderr=subprocess.STDOUT
     ).decode()
 
